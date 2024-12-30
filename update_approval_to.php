@@ -179,15 +179,19 @@ include_once 'common_top_body.php';
                                         </div>
                                     </div>
 <?php
-    $qryDetails = "SELECT tsd.qty, fb.name fnm, tb.name tnm, i.name product, tsd.approval_qty,tsd.id,tsd.product pid, tsd.to_store, i.barcode
-                   FROM `transfer_stock_details` tsd LEFT JOIN branch fb ON fb.id=tsd.from_store LEFT JOIN branch tb ON tb.id=tsd.to_store 
-                   LEFT JOIN item i ON i.id=tsd.product WHERE tsd.toid = ".$tid; 
+    $qryDetails = "SELECT tsd.qty, fb.name fnm, tb.name tnm, i.name product, i.image photo, tsd.approval_qty,tsd.id,tsd.product pid, tsd.to_store, i.barcode
+                   FROM `transfer_stock_details` tsd 
+                   LEFT JOIN branch fb ON fb.id=tsd.from_store 
+                   LEFT JOIN branch tb ON tb.id=tsd.to_store 
+                   LEFT JOIN item i ON i.id=tsd.product 
+                   WHERE tsd.toid = ".$tid; 
     $resultDetails = $conn->query($qryDetails);
     while ($rowDetails = $resultDetails->fetch_assoc()) {
         $qty = $rowDetails["qty"];
         $frombr = $rowDetails["fnm"];
         $tobr = $rowDetails["tnm"];
         $barcode = $rowDetails["barcode"];
+        $photo = $rowDetails["photo"];
         $product = $rowDetails["product"]." (".$barcode.")";
         $appqty = $rowDetails["approval_qty"];
         $tsdid = $rowDetails["id"];
@@ -197,8 +201,13 @@ include_once 'common_top_body.php';
 ?>
                                                 <div class="toClone">
                                                     <div class="col-lg-4 col-md-6 col-sm-6">
-                                                        <div class="input-group">
+                                                        <div class="input-group d-flex">
+                                                            <div>
+                                                            <img src="assets/images/products/300_300/<?=$photo?>" style="border:1px solid #b4b2b2" height="35" width="35">
+                                                            </div>
+                                                            <div style="width:100%">
                                                             <input type="text" class="form-control" name="product[]" id="product" value="<?= $product?>" disabled >
+                                                            </div>
                                                             <input type="hidden" class="form-control" name="productid[]" value="<?= $productId?>">
                                                         </div>
                                                     </div>

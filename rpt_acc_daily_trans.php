@@ -46,238 +46,94 @@ if ($usr == '') {header("Location: " . $hostpath . "/hr.php");
         header("Location: " . $hostpath . "/hraction.php?res=0&msg='Insert Data'&mod=4");
     }
     if (isset($_POST['export'])) {
-        
-        
-        include_once("excel_daily_trans.php");
-    /*      
+          
           if($fdt != ''){
                 $date_qry = " and m.`transdt` between DATE_FORMAT('$fdt', '%Y/%m/%d') and DATE_FORMAT('$tdt', '%Y/%m/%d') ";
             }else{
                 $date_qry = "";
             }
-            
-            
 
-    $objPHPExcel = new PHPExcel();
-    $objPHPExcel->setActiveSheetIndex(0)
-    ->setCellValue('A1', 'SL.')
-    ->setCellValue('B1', 'Date')
-    ->setCellValue('C1', 'Ref')
-    ->setCellValue('D1', 'Vouch No')
-    ->setCellValue('E1', 'GL Account')
-    ->setCellValue('F1', 'Debit')
-    ->setCellValue('G1', 'Credit')
-    ->setCellValue('H1', 'Narration')
-    ->setCellValue('I1', 'Maker')
-    ->setCellValue('J1', 'Checker')
-    ->setCellValue('K1', 'Approver');
+        $objPHPExcel = new PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0)
+            ->setCellValue('A1', 'SL.')
+            ->setCellValue('B1', 'Date')
+            ->setCellValue('C1', 'Ref')
+            ->setCellValue('D1', 'Vouch No')
+            ->setCellValue('E1', 'GL Account')
+            ->setCellValue('F1', 'Debit')
+            ->setCellValue('G1', 'Credit')
+            ->setCellValue('H1', 'Narration')
+            ->setCellValue('I1', 'Maker')
+            ->setCellValue('J1', 'Checker')
+            ->setCellValue('K1', 'Approver');
 
-    $qry = "SELECT a.id, DATE_FORMAT(m.`transdt`, '%m/%d/%Y') `entrydate`, a.`remarks`, a.`vouchno`, 
-          CONCAT(c.`glnm`, '(', c.`glno`, ')') glnm, a.`dr_cr`, a.`amount`, h.hrName makeusr, 
-          h1.hrName checkusr, h2.hrName apprvusr, m.remarks narr
-        FROM glmst m 
-        JOIN `gldlt` a ON m.vouchno=a.vouchno  
-        LEFT JOIN coa c ON a.`glac` = c.glno 
-        LEFT JOIN hr h ON m.entryby=h.id 
-        LEFT JOIN hr h1 ON m.checkby=h1.id 
-        LEFT JOIN hr h2 ON m.approvedby=h2.id  
-        WHERE m.isfinancial IN ('0', 'A') 
-          AND (a.glac = '".$fglno."' OR '".$fglno."' = '0') $date_qry 
-        ORDER BY m.`transdt` ASC";
+        $firststyle = 'A2';
+        $qry        = "SELECT a.id,DATE_FORMAT( m.`transdt`,'%m/%d/%Y') `entrydate`, a.`remarks`, a.`vouchno`, concat(c.`glnm`, '(', c.`glno`, ')') glnm, a.`dr_cr`, a.`amount`,h.hrName makeusr,h1.hrName checkusr,h2.hrName apprvusr,m.remarks narr
+FROM glmst m join `gldlt` a on m.vouchno=a.vouchno  LEFT JOIN coa c ON a.`glac` = c.glno 
+left join hr h on m.entryby=h.id left join hr h1 on m.checkby=h1.id left join hr h2 on m.approvedby=h2.id  
+                                        where m.isfinancial in('0','A') and (a.glac = '".$fglno."' or '".$fglno."' = '0') $date_qry order by m.`transdt` asc";
+        // echo  $qry;die;
+        $result = $conn->query($qry);
+        if ($result->num_rows > 0) {$i = 0;
+            while ($row = $result->fetch_assoc()) {
+                $urut  = $i + 2;
+                $col1  = 'A' . $urut;
+                $col2  = 'B' . $urut;
+                $col3  = 'C' . $urut;
+                $col4  = 'D' . $urut;
+                $col5  = 'E' . $urut;
+                $col6  = 'F' . $urut;
+                $col7  = 'G' . $urut;
+                $col8  = 'H' . $urut;
+                $col9  = 'I' . $urut;
+                $col10 = 'J' . $urut;
+                $col11 = 'K' . $urut;
+                $i++;
+                if ($row["dr_cr"] == 'C') {
+                    $dr = $row["amount"];
+                    $cr = 0;
+                } else {
+                    $cr = $row["amount"];
+                    $dr = 0;
+                }
+                $objPHPExcel->setActiveSheetIndex(0)
+                    ->setCellValue($col1, $i)
+                    ->setCellValue($col2, $row['entrydate'])
+                    ->setCellValue($col3, $row['remarks'])
+                    ->setCellValue($col4, $row['vouchno'])
+                    ->setCellValue($col5, $row['glnm'])
+                    ->setCellValue($col6, $dr)
+                    ->setCellValue($col7, $cr)
+                    ->setCellValue($col8, $row['narr'])
+                    ->setCellValue($col9, $row['makeusr'])
+                    ->setCellValue($col10, $row['checkusr'])
+                    ->setCellValue($col11, $row['apprvusr']);
 
-    $result = $conn->query($qry);
-    if ($result->num_rows > 0) {
-        $i = 0;
-        while ($row = $result->fetch_assoc()) {
-            $urut  = $i + 2;
-            $col1  = 'A' . $urut;
-            $col2  = 'B' . $urut;
-            $col3  = 'C' . $urut;
-            $col4  = 'D' . $urut;
-            $col5  = 'E' . $urut;
-            $col6  = 'F' . $urut;
-            $col7  = 'G' . $urut;
-            $col8  = 'H' . $urut;
-            $col9  = 'I' . $urut;
-            $col10 = 'J' . $urut;
-            $col11 = 'K' . $urut;
-            $i++;
-            if ($row["dr_cr"] == 'C') {
-                $dr = $row["amount"];
-                $cr = 0;
-            } else {
-                $cr = $row["amount"];
-                $dr = 0;
+                //$laststyle=$title;
             }
-    
-            // Format date as Excel date value
-            $dateValue = PHPExcel_Shared_Date::PHPToExcel(strtotime($row['entrydate']));
-    
-            $objPHPExcel->setActiveSheetIndex(0)
-                
-                ->setCellValue($col1, $i)
-                ->setCellValue($col2, $dateValue) // Set date as numeric Excel date
-                ->setCellValue($col3, $row['remarks'])
-                ->setCellValue($col4, $row['vouchno'])
-                ->setCellValue($col5, $row['glnm'])
-                ->setCellValue($col6, $dr)
-                ->setCellValue($col7, $cr)
-                ->setCellValue($col8, $row['narr'])
-                ->setCellValue($col9, $row['makeusr'])
-                ->setCellValue($col10, $row['checkusr'])
-                ->setCellValue($col11, $row['apprvusr']);
         }
+        $objPHPExcel->getActiveSheet()->setTitle('Daily Transection');
+        $objPHPExcel->setActiveSheetIndex(0);
+        $today     = date("YmdHis");
+        $fileNm    = "data/" . 'daily_transection' . $today . '.xls';
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $objWriter->save($fileNm);
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename=' . $fileNm);
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($fileNm));
+        ob_clean();
+        flush();
+        readfile($fileNm);
+        exit;
     }
 
-    // Set column B to Date format
-    //$objPHPExcel->getActiveSheet()->getStyle('B2:B' . ($i + 1))->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_DATE_DDMMYYYY);
-
-    $objPHPExcel->getActiveSheet()->getStyle($col2)->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_DATE_YYYYMMDD2);
-
-    // Set the worksheet title
-    $objPHPExcel->getActiveSheet()->setTitle('Daily Transaction');
-    $objPHPExcel->setActiveSheetIndex(0);
-    
-    // Save file
-    $today     = date("YmdHis");
-    $fileNm    = "data/" . 'daily_transaction_' . $today . '.xls';
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-    $objWriter->save($fileNm);
-    
-    // Send file to browser
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename=' . basename($fileNm));
-    header('Content-Transfer-Encoding: binary');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-    header('Content-Length: ' . filesize($fileNm));
-    ob_clean();
-    flush();
-    readfile($fileNm);
-    exit;
-}
-
-
-*/
-/*
-    $objPHPExcel = new PHPExcel();
-    $objPHPExcel->setActiveSheetIndex(0)
-        ->setCellValue('A1', 'SL.')
-        ->setCellValue('B1', 'Date')
-        ->setCellValue('C1', 'Ref')
-        ->setCellValue('D1', 'Vouch No')
-        ->setCellValue('E1', 'GL Account')
-        ->setCellValue('F1', 'Debit')
-        ->setCellValue('G1', 'Credit')
-        ->setCellValue('H1', 'Narration')
-        ->setCellValue('I1', 'Maker')
-        ->setCellValue('J1', 'Checker')
-        ->setCellValue('K1', 'Approver');
-    
-    // Database query
-    //DATE_FORMAT(m.`transdt`,'%m/%d/%Y') 
-    // /DATE_FORMAT(m.`transdt`,'%Y-%m-%d')
-    $qry = "SELECT a.id, DATE(m.`transdt`) `entrydate`, a.`remarks`, a.`vouchno`, 
-                   CONCAT(c.`glnm`, '(', c.`glno`, ')') glnm, a.`dr_cr`, a.`amount`,
-                   h.hrName makeusr, h1.hrName checkusr, h2.hrName apprvusr, m.remarks narr
-            FROM glmst m 
-            JOIN `gldlt` a ON m.vouchno = a.vouchno
-            LEFT JOIN coa c ON a.`glac` = c.glno
-            LEFT JOIN hr h ON m.entryby = h.id 
-            LEFT JOIN hr h1 ON m.checkby = h1.id 
-            LEFT JOIN hr h2 ON m.approvedby = h2.id  
-            WHERE m.isfinancial IN ('0', 'A') 
-              AND (a.glac = '".$fglno."' OR '".$fglno."' = '0') 
-            $date_qry 
-            ORDER BY m.`transdt` ASC";
-    
-    $result = $conn->query($qry);
-    
-    //echo $qry;
-    //die;
-    
-    if ($result->num_rows > 0) {
-        $i = 0;
-        
-        date_default_timezone_set('Asia/Dhaka'); 
-        
-        while ($row = $result->fetch_assoc()) {
-            $urut  = $i + 2;
-            $col1  = 'A' . $urut;
-            $col2  = 'B' . $urut;
-            $col3  = 'C' . $urut;
-            $col4  = 'D' . $urut;
-            $col5  = 'E' . $urut;
-            $col6  = 'F' . $urut;
-            $col7  = 'G' . $urut;
-            $col8  = 'H' . $urut;
-            $col9  = 'I' . $urut;
-            $col10 = 'J' . $urut;
-            $col11 = 'K' . $urut;
-            $i++;
-    
-            if ($row["dr_cr"] == 'C') {
-                $dr = $row["amount"];
-                $cr = 0;
-            } else {
-                $cr = $row["amount"];
-                $dr = 0;
-            }
-    
-            // Add values to Excel
-            $objPHPExcel->setActiveSheetIndex(0)
-                ->setCellValue($col1, $i)
-                //->setCellValue($col2, strtotime($row['entrydate']))
-                ->setCellValue($col3, $row['remarks'])
-                ->setCellValue($col4, $row['vouchno'])
-                ->setCellValue($col5, $row['glnm'])
-                ->setCellValue($col6, $dr)
-                ->setCellValue($col7, $cr)
-                ->setCellValue($col8, $row['narr'])
-                ->setCellValue($col9, $row['makeusr'])
-                ->setCellValue($col10, $row['checkusr'])
-                ->setCellValue($col11, $row['apprvusr']); 
-            
-                $dateValue = PHPExcel_Shared_Date::PHPToExcel(strtotime(date('Y-m-d', strtotime($row['entrydate']))));
-
-            $objPHPExcel->getActiveSheet()
-            ->setCellValue($col2, $dateValue)
-            ->getStyle($col2)
-            ->getNumberFormat()
-            ->setFormatCode('dd/mm/yyyy 00:00:00');
-                            
-            } //while ($row = $result->fetch_assoc()) {
-        } //if ($result->num_rows > 0) {
-    
-    // Set title and save file
-    $objPHPExcel->getActiveSheet()->setTitle('Daily Transaction');
-    $objPHPExcel->setActiveSheetIndex(0);
-    $today  = date("YmdHis");
-    $fileNm = "data/" . 'daily_transaction_' . $today . '.xls';
-    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-    $objWriter->save($fileNm);
-    
-    // Send file to browser
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/vnd.ms-excel');
-    header('Content-Disposition: attachment; filename=' . basename($fileNm));
-    header('Content-Transfer-Encoding: binary');
-    header('Expires: 0');
-    header('Cache-Control: must-revalidate');
-    header('Pragma: public');
-    header('Content-Length: ' . filesize($fileNm));
-    ob_clean();
-    flush();
-    readfile($fileNm);
-    echo "Done";
-    exit;
-    */
- } //if (isset($_POST['export'])) {
- 
- 
-?>
+    ?>
     <!doctype html>
     <html xmlns="http://www.w3.org/1999/xhtml">
     <?php

@@ -128,6 +128,7 @@ if($action=="pendingdelivery"){
         
         if($columnName == 'sl'){
             $columnName = "r.id";
+            // $columnName = "doi.do_date";
         }
         if($columnName == 'do_date'){
             $columnName = "doi.do_date";
